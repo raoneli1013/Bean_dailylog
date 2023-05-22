@@ -41,7 +41,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     followings = serializers.StringRelatedField(many=True)
     followers = serializers.StringRelatedField(many=True)
-    # bookmark_diary_count = serializers.SerializerMetaclass()
+    # bookmark_diary = serializers.SerializerMethodField() 
     # likes_diary_count = serializers.SerializerMetaclass()
     profile_img = serializers.ImageField(
         max_length=None,
@@ -49,24 +49,22 @@ class UserProfileSerializer(serializers.ModelSerializer):
         required=False,
     )
 
-    # #
-    # def get_bookmark_count(self):
-    #     return Boookmark.count()
+
 
     class Meta:
         model = User
-        fields = ("id","email","nickname","introduction","profile_img","followings")
+        fields = ("id","email","nickname","introduction","profile_img","followings","followers",)
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("email", "password", "nickname", "introduction", "profile_img")
-        read_only_fields = ["email",]
+        fields = ("email", "nickname", "introduction", "profile_img")
+        read_only_fields = ["email","password",]
         extra_kwargs = {
-            "password": {
-                "write_only": True,
-            },
+            # "profile_img": {
+            #     "read_only": True,
+            # },
             "nickname": {
                 "required": False,
             },
