@@ -1,11 +1,11 @@
 from rest_framework.views import APIView
-from .models import Diary
+from .models import Diary, Comment
 from rest_framework.response import Response
 from .serializers import DiarySerializer, DiaryCreateSerializer, DiaryPutSerializer
 from rest_framework import status, permissions
 from rest_framework.generics import get_object_or_404
-
-
+from rest_framework.permissions import IsAuthenticated
+from .serializers import CommentSerializer
 
 class DiaryView(APIView):
     def get(self,request):
@@ -51,3 +51,26 @@ class DiaryDetailView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             return Response({'message':'권한이 없습니다'},status=status.HTTP_401_UNAUTHORIZED)
+        
+class CommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, diary_id):
+        comment = Comment.objects.filter(diary_id=diary_id)
+        serializer = CommentSerializer(comment, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, diary_id):
+        diary = get_object_or_404(diary, pk=diary_id)
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user, diary=diary)
+            return Response(serializer.data, status=201)
+        else:
+            return Response(serializer.errors, status=400)
+
+    def put(slef, request, comment_id):
+        pass
+
+    def delete(self, request, comment_id):
+        pass
