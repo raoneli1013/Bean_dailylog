@@ -41,17 +41,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     followings = serializers.StringRelatedField(many=True)
     followers = serializers.StringRelatedField(many=True)
-    bookmark_dairy_count = serializers.SerializerMetaclass()
-    likes_dairy_count = serializers.SerializerMetaclass()
+    # bookmark_dairy_count = serializers.SerializerMetaclass()
+    # likes_dairy_count = serializers.SerializerMetaclass()
     profile_img = serializers.ImageField(
         max_length=None,
         use_url=True,
         required=False,
     )
 
-    #
-    def get_bookmark_count(self):
-        return Boookmark.feed.count()
+    # #
+    # def get_bookmark_count(self):
+    #     return Boookmark.count()
 
     class Meta:
         model = User
