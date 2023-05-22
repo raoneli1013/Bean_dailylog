@@ -30,7 +30,6 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser):
 
-
     email = models.EmailField(
         verbose_name="email address",
         max_length=255,
@@ -65,4 +64,3 @@ class User(AbstractBaseUser):
     def is_staff(self):
         return self.is_admin
     
-    #user_model
