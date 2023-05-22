@@ -10,7 +10,7 @@ class UserManager(BaseUserManager):
 
         user = self.model(
             email=self.normalize_email(email),
-            username=nickname,
+            nickname=nickname,
         )
 
         user.set_password(password)
@@ -29,7 +29,6 @@ class UserManager(BaseUserManager):
         return user
 
 class User(AbstractBaseUser):
-
 
     email = models.EmailField(
         verbose_name="email address",
@@ -65,4 +64,3 @@ class User(AbstractBaseUser):
     def is_staff(self):
         return self.is_admin
     
-    #user_model
