@@ -1,3 +1,4 @@
+
 from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.generics import get_object_or_404
@@ -6,7 +7,7 @@ from user.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView
 from user.serializers import *
 
-# user/signup/
+# user/
 class UserView(APIView):
 
     def post(self, request):
@@ -42,5 +43,6 @@ class ProfileView(APIView):
     def get(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
         return Response(UserProfileSerializer(user).data, status=status.HTTP_200_OK)
+
 
 
