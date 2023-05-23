@@ -6,6 +6,48 @@ from rest_framework import status, permissions
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from .serializers import CommentSerializer
+from rest_framework.viewsets import ViewSet
+
+from rest_framework.decorators import api_view
+from .tasks import create_image_task,add
+from celery.result import AsyncResult
+
+class ImageViewSet(ViewSet):
+    def create(self, request):
+        user_input = request.data.get('prompt')
+
+        # 이미지 생성 작업을 백그라운드로 실행
+        task = create_image_task.delay(user_input)
+
+        # 작업 ID를 반환
+        return Response({"task_id": str(task.id)})
+
+    def retrieve(self, request, pk=None):
+        task = AsyncResult(pk)
+
+        if task.ready():
+            # 작업이 완료되면 이미지 URL 반환
+            return Response({"status": "completed", "url": task.result})
+        else:
+            # 작업이 진행 중이면 현재 상태 반환
+            return Response({"status": "pending"})
+
+
+class Test_add(ViewSet):
+    def create(self,request):
+        user_input = request.data.get('num')
+        task = add.delay(*user_input)
+
+        # 작업 ID를 반환합니다.
+        return Response({"task_id": task.id})
+    
+    def retrieve(self, request, pk=None):
+        task = AsyncResult(pk)
+
+        if task.ready():
+            return Response({"status": "completed", "result": task.result})
+        else:
+            return Response({"status": "pending"})
 
 class DiaryView(APIView):
     def get(self,request):
