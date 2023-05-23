@@ -20,12 +20,12 @@ class DiaryView(APIView):
         serializer = DiaryCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user = request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response({"message":"diary 작성완료"})
         else:
             return Response({"message":f"{serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST) #요청오류
         
 class DiaryDetailView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     def get(self,request,id):
         diary = get_object_or_404(Diary,id=id)
         serialize = DiarySerializer(diary)
@@ -66,7 +66,7 @@ class CommentView(APIView):
     
     #comment/<diary_id>/ 댓글 생성
     def post(self, request, diary_id):
-        diary = get_object_or_404(diary, pk=diary_id)
+        diary = get_object_or_404(Diary, pk=diary_id)
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user, diary=diary)
