@@ -74,35 +74,37 @@ class CommentView(APIView):
         else:
             return Response(serializer.errors, status=400)
     
-    #comment/<diary_id>/ 댓글 수정
-    def put(self, request, diary_id):
+    
+class CommentDetailView(APIView):
+    # comment/<diary_id>/<comment_id>/ 댓글 수정
+    def put(self, request, diary_id, comment_id):
         try:
-            comment = Comment.objects.get(id=diary_id)
+            comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
-            return Response({"error": "댓글이 없습니다."}, status=404)
+            return Response({"error": "댓글이 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         if comment.user != request.user:
-            return Response({"error": "댓글 작성자만 수정할 수 있습니다."}, status=403)
+            return Response({"error": "댓글 작성자만 수정할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = CommentSerializer(comment, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            return Response(serializer.errors, status=400)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    #comment/<diary_id>/ 댓글 삭제
-    def delete(self, request, diary_id):
+    # comment/<diary_id>/<comment_id>/ 댓글 삭제
+    def delete(self, request, diary_id, comment_id):
         try:
-            comment = Comment.objects.get(id=diary_id)
+            comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
-            return Response({"error": "댓글이 없습니다."}, status=404)
+            return Response({"error": "댓글이 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         if comment.user != request.user:
-            return Response({"error": "댓글 작성자만 삭제할 수 있습니다"}, status=403)
+            return Response({"error": "댓글 작성자만 삭제할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
 
         comment.delete()
-        return Response({"message": "삭제되었습니다."}, status=204)
+        return Response(status=status.HTTP_204_NO_CONTENT)
     
 
 
