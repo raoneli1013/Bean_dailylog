@@ -39,8 +39,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 # 유저 프로필 view
 class UserProfileSerializer(serializers.ModelSerializer):
 
-    followings = serializers.StringRelatedField(many=True)
-    followers = serializers.StringRelatedField(many=True)
+    followers = UserSerializer(many=True)
     # bookmark_diary = serializers.SerializerMethodField() 
     # likes_diary_count = serializers.SerializerMetaclass()
     profile_img = serializers.ImageField(
@@ -50,10 +49,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
     )
 
 
-
     class Meta:
         model = User
-        fields = ("id","email","nickname","introduction","profile_img","followings","followers",)
+        fields = ("id", "email", "nickname", "introduction", "profile_img", "followings", "followers",)
+        
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
