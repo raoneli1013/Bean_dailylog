@@ -6,6 +6,48 @@ from rest_framework import status, permissions
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from .serializers import CommentSerializer
+from rest_framework.viewsets import ViewSet
+
+from rest_framework.decorators import api_view
+from .tasks import create_image_task,add
+from celery.result import AsyncResult
+
+class ImageViewSet(ViewSet):
+    def create(self, request):
+        user_input = request.data.get('prompt')
+
+        # 이미지 생성 작업을 백그라운드로 실행
+        task = create_image_task.delay(user_input)
+
+        # 작업 ID를 반환
+        return Response({"task_id": str(task.id)})
+
+    def retrieve(self, request, pk=None):
+        task = AsyncResult(pk)
+
+        if task.ready():
+            # 작업이 완료되면 이미지 URL 반환
+            return Response({"status": "completed", "url": task.result})
+        else:
+            # 작업이 진행 중이면 현재 상태 반환
+            return Response({"status": "pending"})
+
+
+class Test_add(ViewSet):
+    def create(self,request):
+        user_input = request.data.get('num')
+        task = add.delay(*user_input)
+
+        # 작업 ID를 반환합니다.
+        return Response({"task_id": task.id})
+    
+    def retrieve(self, request, pk=None):
+        task = AsyncResult(pk)
+
+        if task.ready():
+            return Response({"status": "completed", "result": task.result})
+        else:
+            return Response({"status": "pending"})
 
 class DiaryView(APIView):
     def get(self,request):
@@ -74,32 +116,67 @@ class CommentView(APIView):
         else:
             return Response(serializer.errors, status=400)
     
-    #comment/<diary_id>/ 댓글 수정
-    def put(self, request, diary_id):
+    
+class CommentDetailView(APIView):
+    # comment/<diary_id>/<comment_id>/ 댓글 수정
+    def put(self, request, diary_id, comment_id):
         try:
-            comment = Comment.objects.get(id=diary_id)
+            comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
-            return Response({"error": "댓글이 없습니다."}, status=404)
+            return Response({"error": "댓글이 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         if comment.user != request.user:
-            return Response({"error": "댓글 작성자만 수정할 수 있습니다."}, status=403)
+            return Response({"error": "댓글 작성자만 수정할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = CommentSerializer(comment, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            return Response(serializer.errors, status=400)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    #comment/<diary_id>/ 댓글 삭제
-    def delete(self, request, diary_id):
+    # comment/<diary_id>/<comment_id>/ 댓글 삭제
+    def delete(self, request, diary_id, comment_id):
         try:
-            comment = Comment.objects.get(id=diary_id)
+            comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
-            return Response({"error": "댓글이 없습니다."}, status=404)
+            return Response({"error": "댓글이 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         if comment.user != request.user:
-            return Response({"error": "댓글 작성자만 삭제할 수 있습니다"}, status=403)
+            return Response({"error": "댓글 작성자만 삭제할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
 
         comment.delete()
-        return Response({"message": "삭제되었습니다."}, status=204)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+
+    #좋아요
+class DiaryLikeView(APIView):
+    def post(self, request, diary_id):
+        diary = get_object_or_404(Diary, id=diary_id)
+        if request.user in diary.likes.all():
+            diary.likes.remove(request.user)
+            return Response('좋아요 취소', status=status.HTTP_200_OK)
+        else:
+            diary.likes.add(request.user)
+            return Response('좋아요', status=status.HTTP_200_OK)
+        
+    #좋아요 보여주기
+    def get(self, request,diary_id):
+        user = request.user
+        diary = diary.likes.all()
+        serializer = DiarySerializer(diary, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    
+
+class BookMarksView(APIView):
+    def post(self, request, diary_id):
+        diary = get_object_or_404(Diary, id=diary_id)
+        if request.user in diary.bookmarks.all():
+            diary.bookmarks.remove(request.user)
+            return Response('북마크 취소', status=status.HTTP_200_OK)
+        else:
+            diary.bookmarks.add(request.user)
+            return Response('북마크', status=status.HTTP_200_OK)
+

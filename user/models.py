@@ -41,6 +41,8 @@ class User(AbstractBaseUser):
     profile_img = models.ImageField("프로필 이미지", blank=True, upload_to="profile/%Y/%m/")
     followings = models.ManyToManyField("self", symmetrical=False, related_name="followers", blank=True)
 
+
+
     is_admin = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)

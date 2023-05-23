@@ -11,6 +11,11 @@ class Diary(models.Model):
         blank=True, null=True, upload_to="media/photo/%Y/%m/%d", default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    likes = models.ManyToManyField(User, related_name="liked_diaries", default=[], blank=True, through='Feed_like')
+    bookmarks = models.ManyToManyField(User, through='Boookmark', default=[], blank=True, related_name="bookmarked_diaries")
+   
+
+
 
     def __str__(self):
         return self.title
@@ -35,10 +40,10 @@ class Comment(models.Model):
 
 class Feed_like(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    feed = models.ForeignKey(Diary, on_delete=models.CASCADE, null=True)
+    diary = models.ForeignKey(Diary, related_name="diary_likes", on_delete=models.CASCADE, null=True)
 
 
 class Boookmark(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    Diary = models.ForeignKey(
-        Diary, related_name="comments", on_delete=models.CASCADE)
+    diary = models.ForeignKey(
+        Diary, related_name="daiary_bookmark", on_delete=models.CASCADE)
