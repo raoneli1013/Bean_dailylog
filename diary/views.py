@@ -66,7 +66,7 @@ class CommentView(APIView):
     
     #comment/<diary_id>/ 댓글 생성
     def post(self, request, diary_id):
-        diary = get_object_or_404(diary, pk=diary_id)
+        diary = get_object_or_404(Diary, pk=diary_id)
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user, diary=diary)
@@ -103,3 +103,36 @@ class CommentView(APIView):
 
         comment.delete()
         return Response({"message": "삭제되었습니다."}, status=204)
+    
+
+
+    #좋아요
+class DiaryLikeView(APIView):
+    def post(self, request, diary_id):
+        diary = get_object_or_404(Diary, id=diary_id)
+        if request.user in diary.likes.all():
+            diary.likes.remove(request.user)
+            return Response('좋아요 취소', status=status.HTTP_200_OK)
+        else:
+            diary.likes.add(request.user)
+            return Response('좋아요', status=status.HTTP_200_OK)
+        
+    #좋아요 보여주기
+    def get(self, request,diary_id):
+        user = request.user
+        diary = diary.likes.all()
+        serializer = DiarySerializer(diary, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    
+
+class BookMarksView(APIView):
+    def post(self, request, diary_id):
+        diary = get_object_or_404(Diary, id=diary_id)
+        if request.user in diary.bookmarks.all():
+            diary.bookmarks.remove(request.user)
+            return Response('북마크 취소', status=status.HTTP_200_OK)
+        else:
+            diary.bookmarks.add(request.user)
+            return Response('북마크', status=status.HTTP_200_OK)
+
