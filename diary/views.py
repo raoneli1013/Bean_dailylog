@@ -27,15 +27,15 @@ class DiaryView(APIView):
 class DiaryDetailView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     def get(self,request,id):
-        Diary = get_object_or_404(Diary,id=id)
-        serialize = DiarySerializer(Diary)
+        diary = get_object_or_404(Diary,id=id)
+        serialize = DiarySerializer(diary)
         return Response(serialize.data)
     
     
     def put(self,request,id):
-        Diary = get_object_or_404(Diary,id=id)
-        if request.user == Diary.user:
-            serializer = DiaryPutSerializer(Diary,data=request.data)
+        diary = get_object_or_404(Diary,id=id)
+        if request.user == diary.user:
+            serializer = DiaryPutSerializer(diary,data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
@@ -45,10 +45,10 @@ class DiaryDetailView(APIView):
             return Response({'message':'권한이 없습니다'},status=status.HTTP_401_UNAUTHORIZED)
     
     def delete(self,request,id):
-        Diary = get_object_or_404(Diary,id=id)
-        if request.user == Diary.user:
-            Diary.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        diary = get_object_or_404(Diary,id=id)
+        if request.user == diary.user:
+            diary.delete()
+            return Response({'message':'삭제되었습니다'},status=status.HTTP_204_NO_CONTENT)
         else:
             return Response({'message':'권한이 없습니다'},status=status.HTTP_401_UNAUTHORIZED)
         
