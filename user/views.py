@@ -6,7 +6,7 @@ from user.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView
 from user.serializers import *
 
-# user/
+# user/signup/
 class UserView(APIView):
 
     def post(self, request):
@@ -42,4 +42,31 @@ class ProfileView(APIView):
     def get(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
         return Response(UserProfileSerializer(user).data, status=status.HTTP_200_OK)
+    
 
+#user/follow/<int:user_id>/
+class FollowView(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get(self, request, user_id):
+        you = get_object_or_404(User, id=user_id)
+        serializers = UserProfileSerializer(you)
+        return Response(serializers.data, status=status.HTTP_200_OK)
+    
+    def post(self, request, user_id):
+        you = get_object_or_404(User, id=user_id)
+        me = request.user
+
+        if me.is_authenticated:
+            if you != request.user:
+                if me in you.followers.all():
+                    you.followers.remove(me)
+                    return Response("unfollow",status=status.HTTP_200_OK)
+                else:
+                    you.followers.add(me)
+                    return Response("follow",status=status.HTTP_200_OK)
+            else:
+                return Response ("본인은 팔로우 할 수 없습니다",status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response ("로그인이 필요합니다",status=status.HTTP_400_BAD_REQUEST)
+    
