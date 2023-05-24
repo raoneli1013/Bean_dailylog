@@ -1,7 +1,6 @@
 from django.db import models
 from user.models import User
-# Create your models here.
-# aa
+from django.urls import reverse
 
 
 class Diary(models.Model):
@@ -20,6 +19,11 @@ class Diary(models.Model):
 
     def __str__(self):
         return self.title
+    
+    # test code를 위한 함수
+    def get_absolute_url(self):
+        return reverse('diary_detail', kwargs={"id":self.pk})
+    # 자신의 id를 "id"에 담아서 url인 'diary_detail'에 보내고, 해당 url path의 reverse값을 가져온다. (=Diary의 url을 가져온다)
 
 
 class Comment(models.Model):

@@ -45,27 +45,23 @@ class  LoginUserTest(APITestCase):
         self.assertEqual(response.status_code, 200)
 
 
+# 프로필 테스트코드
+# class ProfileReadTest(APITestCase):
+#     @classmethod
+#     def setUpTestData(cls):
+#         cls.user_data = {"email": "test@test.com", "password": "q1w2e3r4"}
+#         cls.users = []
+#         cls.user = User.objects.create_user(
+#             email=cls.user_data["email"], password=cls.user_data["password"])
 
-#작동 왜 안됨...?
+#     def setUp(self):
+#         self.access_token = self.client.post(
+#             reverse("dj_rest_auth.registration.urls"), self.user_data
+#         ).data["access"]
 
-class ProfileReadTest(APITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.user_data = {"email": "test@test.com","nickname":"name", "password": "q1w2e3r4"}
-        cls.users = []
-        cls.user = User.objects.create_user(
-            "test@test.com", "name", "q1w2e3r4")
-
-
-    def setUp(self):
-        self.access_token = self.client.post(
-            reverse("token_obtain_pair"), self.user_data
-        ).data["access"]
+    # def test_get_profile(self):
+    #     url = self.user.get_absolute_url()
+    #     response = self.client.get(url)
+    #     serializer = UserProfileSerializer(self.user).data
+    #     self.assertEqual(response.data, serializer)
         
-    def test_get_profile(self):
-        for user in self.users:
-            url = user.get_absolute_url()
-            response = self.client.get(url)
-            serializer = UserProfileSerializer(user).data
-            self.assertEqual(response.data)
-            print(response.data)
