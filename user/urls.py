@@ -12,7 +12,7 @@ urlpatterns = [
 
 
     #마이페이지,팔로우,회원탈퇴
-    path('profile/<int:user_id>/', views.ProfileView.as_view(), name="profile_view"),
+    # path('profile/<int:user_id>/', views.ProfileView.as_view(), name="profile_view"),
     path('follow/<int:user_id>/', views.FollowView.as_view(), name='follow_view'),
 
 ]

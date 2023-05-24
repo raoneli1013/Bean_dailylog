@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
+from django.urls import reverse
 
 
 class UserManager(BaseUserManager):
@@ -66,3 +67,5 @@ class User(AbstractBaseUser):
     def is_staff(self):
         return self.is_admin
     
+    def get_absolute_url(self):
+        return reverse('user_profile_view',kwargs={"user_id":self.id})
