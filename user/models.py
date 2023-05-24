@@ -59,6 +59,7 @@ class User(AbstractBaseUser):
             self.nickname = self.email.split("@")[0]
         super().save(*args, **kwargs)
         
+
     def has_perm(self, perm, obj=None):
         return True
 
@@ -68,8 +69,3 @@ class User(AbstractBaseUser):
     def get_absolute_url(self):
         return reverse('user_profile_view', args=[str(self.id)])
 
-    def has_perm(self, perm, obj=None):
-        return True
-
-    def has_module_perms(self, app_label):
-        return True
