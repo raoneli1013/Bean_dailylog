@@ -49,8 +49,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
         required=False,
     )
 
-
-
     class Meta:
         model = User
         fields = ("id","email","nickname","introduction","profile_img","followings","followers",)

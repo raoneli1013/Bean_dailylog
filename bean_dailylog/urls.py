@@ -22,6 +22,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/', include('user.urls')),
     path('diary/', include('diary.urls')),
+    # 일반 회원 회원가입/로그인
+
+
 ]
 
 urlpatterns += static(settings.MEDIA_URL,
