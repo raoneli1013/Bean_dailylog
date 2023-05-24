@@ -1,50 +1,45 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
-from django.urls import reverse
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, nickname, password=None):
 
+    def create_user(self, email, password, **kwargs):
         if not email:
-            raise ValueError("Users must have an email address")
+            raise ValueError('Users must have an email address')
 
         user = self.model(
-            email=self.normalize_email(email),
-            nickname=nickname,
+            email=email,
         )
-
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, nickname, password=None):
-
-        user = self.create_user(
-            email,
-            nickname=nickname,
+    def create_superuser(self, email, password, **extra_fields):
+        superuser = self.create_user(
+            email=email,
             password=password,
         )
-        user.is_admin = True
-        user.save(using=self._db)
-        return user
+        superuser.is_staff = True
+        superuser.is_admin = True
+        superuser.is_active = True
+        superuser.save(using=self._db)
+        return superuser
+
 
 class User(AbstractBaseUser):
 
-    email = models.EmailField(
-        verbose_name="email address",
-        max_length=255,
-        unique=True,
-    )
-    password = models.CharField("비밀번호", max_length=256)
-    nickname = models.CharField("이름", max_length=100, unique=True)
+    email = models.EmailField("email address", max_length=50, unique=True, null=False, blank=False)
+    password = models.CharField("비밀번호", max_length=50)
+    nickname = models.CharField("이름", max_length=100)
     introduction = models.TextField("자기소개", null=True, blank=True)
     profile_img = models.ImageField("프로필 이미지", blank=True, upload_to="profile/%Y/%m/")
     followings = models.ManyToManyField("self", symmetrical=False, related_name="followers", blank=True)
 
 
-
     is_admin = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -52,20 +47,19 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["nickname"]
+    REQUIRED_FIELDS = []
 
     def __str__(self):
-        return self.nickname
+        return self.email
 
+    def save(self, *args, **kwargs):
+        if not self.nickname:
+            self.nickname = self.email.split("@")[0]
+        super().save(*args, **kwargs)
+        
     def has_perm(self, perm, obj=None):
         return True
 
     def has_module_perms(self, app_label):
         return True
 
-    @property
-    def is_staff(self):
-        return self.is_admin
-    
-    def get_absolute_url(self):
-        return reverse('user_profile_view',kwargs={"user_id":self.id})
