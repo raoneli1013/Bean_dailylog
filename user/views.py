@@ -29,7 +29,7 @@ class UserView(APIView):
     def delete(self, request):
         user = request.user
         user.delete()
-        return Response({"message": "회원 탈퇴 완료"})
+        return Response({"message": "회원 탈퇴 완료"},status=status.HTTP_204_NO_CONTENT)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
