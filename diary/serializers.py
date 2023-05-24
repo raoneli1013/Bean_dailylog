@@ -4,9 +4,19 @@ from .models import Diary, Comment
 
 class DiarySerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField
+    likes_count = serializers.SerializerMethodField()
+    bookmarks_count = serializers.SerializerMethodField()
 
     def get_user(self, dir):
         return dir.user.nickname
+    
+    #좋아요 갯수
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    #북마크 갯수
+    def get_bookmarks_count(self, obj):
+        return obj.bookmarks.count()
 
     class Meta:
         model = Diary
