@@ -98,7 +98,7 @@ class DiaryDetailView(APIView):
 
 #댓글
 class CommentView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     
     # comment/<diary_id>/ 댓글 리스트
     def get(self, request, diary_id):
