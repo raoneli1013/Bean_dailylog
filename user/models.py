@@ -10,12 +10,13 @@ class UserManager(BaseUserManager):
 
         user = self.model(
             email=email,
+            **kwargs
         )
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_superuser(self, email, password):
         superuser = self.create_user(
             email=email,
             password=password,
@@ -57,4 +58,8 @@ class User(AbstractBaseUser):
             self.nickname = self.email.split("@")[0]
         super().save(*args, **kwargs)
 
+    def has_perm(self, perm, obj=None):
+        return True
 
+    def has_module_perms(self, app_label):
+        return True
