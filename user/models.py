@@ -57,7 +57,7 @@ class User(AbstractBaseUser):
         if not self.nickname:
             self.nickname = self.email.split("@")[0]
         super().save(*args, **kwargs)
-
+        
     def has_perm(self, perm, obj=None):
         return True
 
