@@ -71,7 +71,7 @@ class DiaryView(APIView):
             return Response({"message":f"{serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST) #요청오류
         
 class DiaryDetailView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     def get(self,request,id):
         if request.user == diary.user:
             diary = get_object_or_404(Diary,id=id)
