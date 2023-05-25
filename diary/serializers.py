@@ -38,8 +38,11 @@ class DiaryPutSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
+    name = serializers.SerializerMethodField()
+    
+    def get_name(self, dir):
+        return dir.user.nickname
 
     class Meta:
         model = Comment
-        fields = ["id", "content", "created_at", "updated_at", "user",]
+        fields = ["id", "content", "created_at", "updated_at", "name"]
