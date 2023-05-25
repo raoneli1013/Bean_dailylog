@@ -42,11 +42,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'corsheaders',
     'rest_framework',
+    'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
     'user',
     'diary',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'django_celery_results',
 ]
 
@@ -155,7 +163,7 @@ CACHES = {
 
 LANGUAGE_CODE = 'ko-kr'
 
-TIME_ZONE = 'Asia/seoul'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
@@ -180,8 +188,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOWED_ORIGINS = ["http://localhost:8000"] # 배포할때 고치기
-
+# 배포할때 고치기
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:5500",
+] 
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=600),
@@ -213,8 +224,39 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+
+    "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
+    "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
+    "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
+    "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
+    "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
+    "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
+
 }
 
+# 사이트 1개만 사용
+SITE_ID = 1
+
+# dj-rest-auth 3.0 버전 이후로는 이렇게 써야함
+# JWT_AUTH_HTTPONLY : 쿠키를 http only 여부
+# JWT_AUTH_REFRESH_COOKIE : refresh token을 담을 쿠키 이름
+# JWT_AUTH_COOKIE_USE_CSRF : JWT 쿠키 csrf 검사
+# SESSION_LOGIN : 세션 로그인
+REST_AUTH = {
+    'USE_JWT' : True,
+    'JWT_AUTH_HTTPONLY': False,
+    # 'JWT_AUTH_REFRESH_COOKIE' : "refresh_token",
+    'JWT_AUTH_COOKIE_USE_CSRF' : True,
+    'SESSION_LOGIN' : False
+}
 
 AUTH_USER_MODEL = 'user.User'
+# email 인증 유무
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
 

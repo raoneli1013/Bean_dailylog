@@ -12,7 +12,7 @@ class DiarySerializer(serializers.ModelSerializer):
     
     #좋아요 갯수
     def get_likes_count(self, obj):
-        return obj.likes.count()
+        return obj.diary_likes.count()
 
     #북마크 갯수
     def get_bookmarks_count(self, obj):
@@ -38,8 +38,11 @@ class DiaryPutSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
+    name = serializers.SerializerMethodField()
+    
+    def get_name(self, dir):
+        return dir.user.nickname
 
     class Meta:
         model = Comment
-        fields = ["id", "content", "created_at", "updated_at", "user",]
+        fields = ["id", "content", "created_at", "updated_at", "name"]
