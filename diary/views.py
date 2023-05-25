@@ -8,14 +8,19 @@ from rest_framework.permissions import IsAuthenticated
 from .serializers import CommentSerializer
 from rest_framework.viewsets import ViewSet
 
-from rest_framework.decorators import api_view
-from .tasks import create_image_task,add
+from .tasks import create_image_task
 from celery.result import AsyncResult
 
+import os
+import requests
+from urllib.parse import urlparse
+from datetime import datetime
+from django.conf import settings
 
 class ImageViewSet(ViewSet):
     def create(self, request):
         user_input = request.data.get('prompt')
+        diary_id = request.data.get('diary_id')
 
         # 이미지 생성 작업을 백그라운드로 실행
         task = create_image_task.delay(user_input)
@@ -28,26 +33,25 @@ class ImageViewSet(ViewSet):
 
         if task.ready():
             # 작업이 완료되면 이미지 URL 반환
-            return Response({"status": "completed", "url": task.result})
+            img_url = task.result
+
+            # 이미지 다운로드 및 저장 작업 시작
+            response = requests.get(img_url, stream=True)
+            response.raise_for_status()  #만약 다운로드시 문제가 있다면 에러
+
+            subdirs = datetime.now().strftime('%Y/%m/%d')
+            os.makedirs(os.path.join('media', subdirs), exist_ok=True)
+            image_filename = os.path.join('media', subdirs, os.path.basename(urlparse(img_url).path))
+
+            with open(image_filename, 'wb') as out_file:
+                out_file.write(response.content)
+
+            image_url = image_filename.replace(str(settings.MEDIA_ROOT), settings.MEDIA_URL)
+            image_url = image_url.replace('\\', '/')
+
+            return Response({"status": "complete","url": image_url})
         else:
             # 작업이 진행 중이면 현재 상태 반환
-            return Response({"status": "pending"})
-
-
-class Test_add(ViewSet):
-    def create(self,request):
-        user_input = request.data.get('num')
-        task = add.delay(*user_input)
-
-        # 작업 ID를 반환합니다.
-        return Response({"task_id": task.id})
-
-    def retrieve(self, request, pk=None):
-        task = AsyncResult(pk)
-
-        if task.ready():
-            return Response({"status": "completed", "result": task.result})
-        else:
             return Response({"status": "pending"})
 
 
