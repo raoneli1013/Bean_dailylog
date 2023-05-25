@@ -73,7 +73,9 @@ class CommentView(APIView):
             return Response(serializer.data, status=201)
         else:
             return Response(serializer.errors, status=400)
-    
+
+
+class CommentDetailView(APIView):
     #comment/<diary_id>/ 댓글 수정
     def put(self, request, diary_id):
         try:
