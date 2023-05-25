@@ -1,9 +1,12 @@
 from django.urls import reverse
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from user.models import User
-from .models import Diary, Comment
+from .models import Diary, comment
 from .serializers import DiarySerializer
+from django.test import TestCase, RequestFactory
+from diary.views import *
+
 # 이미지 업로드에 필요한 import
 from django.test.client import MULTIPART_CONTENT, encode_multipart, BOUNDARY
 from PIL import Image
@@ -85,8 +88,6 @@ class DiaryReadAPIViewTestCase(APITestCase):
             for key, value in serializer.items():
                 self.assertEqual(response.data[key], value) # self.assertEqual(diary.title, response.data["title"]) 등 일일히 하지 않도록.
                 
-
-
 
 # 코멘트 생성 , 조회 뷰
 class CommentViewTest(APITestCase):
@@ -198,4 +199,3 @@ class CommentDetailViewTest(APITestCase):
         self.assertEqual(Comment.objects.count(), 4)
         self.assertEqual(response.data, None)
     
-
