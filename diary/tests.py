@@ -28,11 +28,10 @@ class DiaryUploadAPIViewTestCase(APITestCase):
     @classmethod
     def setUpTestData(cls): # test 할 때 모든 메소드에서 실행이 된다 (setUpTestData)
         cls.user_data = {"email":"testdiary@gmail.com",
-                         "nickname":"test",
                          "password":"password"
                          } # 회원가입을 위한 데이터
         cls.diary_data = {"title":"test title","content":"test content"} # diary 작성을 위한 데이터
-        cls.user = User.objects.create_user("testdiary@gmail.com", "test", "password") # 회원가입
+        cls.user = User.objects.create_user("testdiary@gmail.com","password") # 회원가입
         cls.diary = Diary.objects.create(**cls.diary_data, user=cls.user) # diary
 
     def setUp(self): # client는 클래스 메소드가 아니라 setUp으로 만듦.
@@ -94,11 +93,11 @@ class DiaryReadAPIViewTestCase(APITestCase):
 class CommentViewTest(APITestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user_data = {"email": "test@test.com","nickname":"name", "password": "q1w2e3r4"}
+        cls.user_data = {"email": "test@test.com", "password": "q1w2e3r4"}
         cls.diary_data = {"title": "test Title", "content": "content"}
         cls.comment_data = {"content": "content"}
         cls.user = User.objects.create_user(
-            "test@test.com", "name", "q1w2e3r4")
+            "test@test.com", "q1w2e3r4")
         cls.diary = Diary.objects.create(**cls.diary_data, user=cls.user)
 
     def setUp(self):
@@ -150,7 +149,7 @@ class CommentViewTest(APITestCase):
 class CommentDetailViewTest(APITestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user_data = {"email": "test@test.com","nickname":"name", "password": "q1w2e3r4"}
+        cls.user_data = {"email": "test@test.com", "password": "q1w2e3r4"}
         cls.diary_data = {"title": "test Title", "content": "content"}
         cls.comment_data = [
             {"content": "test 1"},
@@ -160,7 +159,7 @@ class CommentDetailViewTest(APITestCase):
             {"content": "test 5"},
         ]
         cls.user = User.objects.create_user(
-            "test@test.com", "name", "q1w2e3r4")
+            "test@test.com", "q1w2e3r4")
         cls.diary = Diary.objects.create(**cls.diary_data, user=cls.user)
         cls.comments = []
         for i in range(5):

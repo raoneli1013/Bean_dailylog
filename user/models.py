@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
+from django.urls import reverse
 
 
 class UserManager(BaseUserManager):
@@ -57,9 +58,14 @@ class User(AbstractBaseUser):
         if not self.nickname:
             self.nickname = self.email.split("@")[0]
         super().save(*args, **kwargs)
+        
 
     def has_perm(self, perm, obj=None):
         return True
 
     def has_module_perms(self, app_label):
         return True
+    
+    def get_absolute_url(self):
+        return reverse('user_profile_view', args=[str(self.id)])
+

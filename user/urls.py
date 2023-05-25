@@ -9,7 +9,6 @@ app_name='users'
 
 urlpatterns = [
     path('', views.UserView.as_view(), name="user_view"),
-    path('<int:user_id>/', views.ProfileView.as_view(), name="user_profile_view"),
     # dj-rest-auth
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
     path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
@@ -18,7 +17,7 @@ urlpatterns = [
     path('google/callback/', views.google_callback, name='google_callback'),
     path('google/login/finish/', views.GoogleLogin.as_view(), name='google_login_todjango'),
     #마이페이지,팔로우,회원탈퇴
-    path('profile/<int:user_id>/', views.ProfileView.as_view(), name="profile_view"),
+    path('<int:user_id>/', views.ProfileView.as_view(), name="user_profile_view"),
     path('follow/<int:user_id>/', views.FollowView.as_view(), name='follow_view'),
 
 ]
