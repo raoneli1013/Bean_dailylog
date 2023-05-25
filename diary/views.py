@@ -105,6 +105,23 @@ class DiaryDetailView(APIView):
 #댓글
 class CommentView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+     # comment/<diary_id>/ 댓글 리스트
+    def get(self, request, diary_id):
+        comment = Comment.objects.filter(diary_id = diary_id)
+        serializer = CommentSerializer(comment, many=True)
+        return Response(serializer.data)
+
+    #comment/<diary_id>/ 댓글 생성
+    def post(self, request, diary_id):
+        diary = get_object_or_404(Diary, pk=diary_id)
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user, diary=diary)
+            return Response(serializer.data, status=201)
+        else:
+            return Response(serializer.errors, status=400)
+
+
 class CommentDetailView(APIView):
     # comment/<diary_id>/<comment_id>/ 댓글 수정
     def put(self, request, diary_id, comment_id):
