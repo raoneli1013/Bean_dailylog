@@ -115,12 +115,12 @@ class DiaryView(APIView):
 class DiaryDetailView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     def get(self,request,id):
-        if request.user == diary.user:
-            diary = get_object_or_404(Diary,id=id)
-            serialize = DiarySerializer(diary)
-            return Response(serialize.data)
-        else:
-            return Response({'message' : "비공개 diary 입니다."})
+        # if request.user == diary.user:
+        diary = get_object_or_404(Diary,id=id)
+        serialize = DiarySerializer(diary)
+        return Response(serialize.data)
+        # else:
+        #     return Response({'message' : "비공개 diary 입니다."})
     
     
     def put(self,request,id):
