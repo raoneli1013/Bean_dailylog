@@ -6,7 +6,8 @@ from rest_framework.response import Response
 from user.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView
 from user.serializers import *
-
+from django.http import HttpResponseRedirect
+from urllib.parse import urlencode
 # user/signup/
 class UserView(APIView):
 
@@ -107,7 +108,12 @@ def google_callback(request):
 
         accept_json = accept.json()
         accept_json.pop('user', None)
-        return JsonResponse(accept_json)
+
+        uri = 'http://127.0.0.1:5500/index.html'
+        query_params = urlencode(accept_json)
+        redirect_url = uri + '?' + query_params
+        
+        return HttpResponseRedirect(redirect_url)
 
     except User.DoesNotExist:
         # 전달받은 이메일로 기존에 가입된 유저가 아예 없으면 => 새로 회원가입 & 해당 유저의 jwt 발급
@@ -168,4 +174,4 @@ class FollowView(APIView):
                 return Response ("본인은 팔로우 할 수 없습니다",status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response ("로그인이 필요합니다",status=status.HTTP_400_BAD_REQUEST)
-    
+
