@@ -16,6 +16,7 @@ import requests
 from urllib.parse import urlparse
 from datetime import datetime
 from django.conf import settings
+from rest_framework.pagination import PageNumberPagination
 
 class ImageViewSet(ViewSet):
     def create(self, request):
@@ -53,18 +54,21 @@ class ImageViewSet(ViewSet):
             # 작업이 진행 중이면 현재 상태 반환
             return Response({"status": "pending"})
 
+
+class TenPagination(PageNumberPagination):
+    page_size = 16
+
+
 class DiaryView(APIView):
+    pagination_class = TenPagination
+    
     def get(self,request):
         diaries = Diary.objects.all()
-        # diary = get_object_or_404(Diary,id=id)
-        # if request.user == diary.user:
-        #     diaries = Diary.objects.all()
-        # else:
-            
-        serialize = DiarySerializer(diaries, many=True)
-        return Response(serialize.data, status=status.HTTP_200_OK)
+        paginator = TenPagination()
+        result_page = paginator.paginate_queryset(diaries, request)
+        serializer = DiarySerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
         
-    
     def post(self,request):
         if not request.user.is_authenticated:
             return Response("로그인을 해주세요.", status=status.HTTP_401_UNAUTHORIZED) 
