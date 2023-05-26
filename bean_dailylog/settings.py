@@ -26,7 +26,9 @@ load_dotenv(os.path.join(PROJECT_DIR, '.env'))
 # SECURITY WARNING: keep the secret key used in production secret!
 
 
+
 SECRET_KEY = os.environ.get("SECRET_KEY")
+OPENAI_KEY = os.environ.get("OPENAI_APIKEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -99,31 +101,33 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'bean_dailylog.wsgi.application'
 
-
+# 로컬에서 테스트 해보실거면 아래 mysql 설정은 주석처리하고 sqlite를 사용해주세요
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('MYSQL_DATABASE'),
+        'USER': os.getenv('MYSQL_USER'),
+        'PASSWORD': os.getenv('MYSQL_PASSWORD'),
+        'HOST': 'mysql',
+        'PORT': os.getenv('MYSQL_PORT'),
+        'OPTIONS':{
+            'charset':'utf8mb4'
+        }
+    }
+}
+
+
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': os.getenv('MYSQL_DATABASE'),
-#         'USER': os.getenv('MYSQL_USER'),
-#         'PASSWORD': os.getenv('MYSQL_PASSWORD'),
-#         'HOST': 'mysql',
-#         'PORT': os.getenv('MYSQL_PORT'),
-#         'OPTIONS':{
-#             'charset':'utf8mb4'
-#         }
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 
 # Password validation
@@ -144,8 +148,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-CELERY_BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'  # django-celery-results를 사용해서 결과를 Django DB에 저장
+CELERY_BROKER_URL = 'redis://redis:6379'
+CELERY_RESULT_BACKEND = 'redis://redis:6379'  # django-celery-results를 사용해서 결과를 Django DB에 저장
 
 # Redis 설정
 CACHES = {
@@ -157,6 +161,9 @@ CACHES = {
         }
     }
 }
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
@@ -173,7 +180,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR /  "static" 
 STATIC_URL = "/static/"
 
@@ -250,9 +256,8 @@ REST_AUTH = {
     'SESSION_LOGIN' : False
 }
 
+
 AUTH_USER_MODEL = 'user.User'
-# email 인증 유무
-ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
@@ -260,3 +265,15 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com' # 메일 호스트 서버
+EMAIL_PORT = '587' # gmail과 통신하는 포트
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER") # 발신할 이메일
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD") # 발신할 메일의 비밀번호
+EMAIL_USE_TLS = True # TLS 보안 방법
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+URL_FRONT = 'http://127.0.0.1:5500/index.html' # 공개적인 웹페이지가 있다면 등록
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True # 유저가 받은 링크를 클릭하면 회원가입 완료되게끔
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "[Bean Dailylog]" # 이메일에 자동으로 표시되는 사이트 정보

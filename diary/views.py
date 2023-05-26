@@ -22,7 +22,6 @@ from rest_framework.permissions import BasePermission # 비밀글 작성자만 �
 class ImageViewSet(ViewSet):
     def create(self, request):
         user_input = request.data.get('prompt')
-        diary_id = request.data.get('diary_id')
 
         # 이미지 생성 작업을 백그라운드로 실행
         task = create_image_task.delay(user_input)
@@ -93,6 +92,7 @@ class Test_add(ViewSet):
             return Response({"status": "completed", "result": task.result})
         else:
             return Response({"status": "pending"})
+
 class DiaryView(APIView):
     def get(self,request):
         diaries = Diary.objects.all()
