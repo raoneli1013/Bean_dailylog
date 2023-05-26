@@ -101,31 +101,33 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'bean_dailylog.wsgi.application'
 
-
+# 로컬에서 테스트 해보실거면 아래 mysql 설정은 주석처리하고 sqlite를 사용해주세요
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('MYSQL_DATABASE'),
+        'USER': os.getenv('MYSQL_USER'),
+        'PASSWORD': os.getenv('MYSQL_PASSWORD'),
+        'HOST': 'mysql',
+        'PORT': os.getenv('MYSQL_PORT'),
+        'OPTIONS':{
+            'charset':'utf8mb4'
+        }
+    }
+}
+
+
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': os.getenv('MYSQL_DATABASE'),
-#         'USER': os.getenv('MYSQL_USER'),
-#         'PASSWORD': os.getenv('MYSQL_PASSWORD'),
-#         'HOST': 'mysql',
-#         'PORT': os.getenv('MYSQL_PORT'),
-#         'OPTIONS':{
-#             'charset':'utf8mb4'
-#         }
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 
 # Password validation
@@ -146,8 +148,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-CELERY_BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'  # django-celery-results를 사용해서 결과를 Django DB에 저장
+CELERY_BROKER_URL = 'redis://redis:6379'
+CELERY_RESULT_BACKEND = 'redis://redis:6379'  # django-celery-results를 사용해서 결과를 Django DB에 저장
 
 # Redis 설정
 CACHES = {
@@ -178,7 +180,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR /  "static" 
 STATIC_URL = "/static/"
 
