@@ -4,7 +4,7 @@ from django.conf import settings
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from diary.models import Feed_like,Boookmark,Diary
 from diary.serializers import DiarySerializer
-
+from allauth.account.adapter import get_adapter,DefaultAccountAdapter
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -34,6 +34,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['nickname'] = user.nickname
 
         return token
+
 
 
 
@@ -108,3 +109,4 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+
