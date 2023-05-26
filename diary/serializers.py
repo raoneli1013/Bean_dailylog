@@ -12,7 +12,7 @@ class DiarySerializer(serializers.ModelSerializer):
     
     #좋아요 갯수
     def get_likes_count(self, obj):
-        return obj.likes.count()
+        return obj.diary_likes.count()
 
     #북마크 갯수
     def get_bookmarks_count(self, obj):
@@ -38,8 +38,19 @@ class DiaryPutSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
+    name = serializers.SerializerMethodField()
+    
+    def get_name(self, dir):
+        return dir.user.nickname
+    
+    def get_user(self, dir):
+        return dir.user.id
 
     class Meta:
         model = Comment
-        fields = ["id", "content", "created_at", "updated_at", "user",]
+        fields = ["id", "content", "created_at", "updated_at", "name", "user",]
+        extra_kwargs = {
+            "user": {
+                "required": False,  # 유저필드를 사용은 하지만 있어도 되고 없어도 되게 만드는 법
+            }
+        }

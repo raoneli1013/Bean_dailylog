@@ -7,8 +7,7 @@ class Diary(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=15)
     content = models.CharField(max_length=150)
-    article_img = models.ImageField(
-        blank=True, null=True, upload_to="media/photo/%Y/%m/%d", default="")
+    article_img = models.URLField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     likes = models.ManyToManyField(User, related_name="liked_diaries", default=[], blank=True, through='Feed_like')

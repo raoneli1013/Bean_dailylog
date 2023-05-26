@@ -26,7 +26,9 @@ load_dotenv(os.path.join(PROJECT_DIR, '.env'))
 # SECURITY WARNING: keep the secret key used in production secret!
 
 
+
 SECRET_KEY = os.environ.get("SECRET_KEY")
+OPENAI_KEY = os.environ.get("OPENAI_APIKEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -102,6 +104,21 @@ WSGI_APPLICATION = 'bean_dailylog.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': os.getenv('MYSQL_DATABASE'),
+#         'USER': os.getenv('MYSQL_USER'),
+#         'PASSWORD': os.getenv('MYSQL_PASSWORD'),
+#         'HOST': 'mysql',
+#         'PORT': os.getenv('MYSQL_PORT'),
+#         'OPTIONS':{
+#             'charset':'utf8mb4'
+#         }
+#     }
+# }
+
 
 DATABASES = {
     'default': {
