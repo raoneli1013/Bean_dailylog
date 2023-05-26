@@ -63,7 +63,7 @@ class DiaryView(APIView):
     pagination_class = TenPagination
     
     def get(self,request):
-        diaries = Diary.objects.all()
+        diaries = Diary.objects.all().order_by('-created_at')
         paginator = TenPagination()
         result_page = paginator.paginate_queryset(diaries, request)
         serializer = DiarySerializer(result_page, many=True)
