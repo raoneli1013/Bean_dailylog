@@ -29,6 +29,12 @@ services:
       - ./config/db/data:/var/lib/mysql
     command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+
   django_app:
     container_name: django_app
     build: 
@@ -38,7 +44,7 @@ services:
         python3 manage.py collectstatic --no-input &&
         python3 manage.py makemigrations &&
         python3 manage.py migrate &&
-        gunicorn B7.wsgi:application --bind 0.0.0.0:80"
+        gunicorn bean_dailylog.wsgi:application --bind 0.0.0.0:80"
     depends_on:
       - mysql
     links:
@@ -47,3 +53,15 @@ services:
     volumes:
       - .:/app
       - ./media:/media
+
+  celery:
+    container_name: celery
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A bean_dailylog worker --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - django_app
+      - redis
