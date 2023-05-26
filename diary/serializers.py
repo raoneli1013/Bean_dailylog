@@ -27,7 +27,7 @@ class DiaryCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Diary
         fields = ["title", "content",
-                  "article_img", "created_at", "updated_at"] # '__all__'하면 user가 필수값이라 게시글 생성 시 user값이 없으면 오류.
+                  "article_img", "created_at", "updated_at", "is_private"] # '__all__'하면 user가 필수값이라 게시글 생성 시 user값이 없으면 오류.
 
 
 class DiaryPutSerializer(serializers.ModelSerializer):

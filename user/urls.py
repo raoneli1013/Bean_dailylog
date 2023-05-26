@@ -1,11 +1,7 @@
-from django.urls import path, include
+from django.urls import path, include, re_path
 from user import views
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from dj_rest_auth.registration.views import VerifyEmailView
 
-app_name='users'
 
 urlpatterns = [
     path('', views.UserView.as_view(), name="user_view"),
@@ -20,5 +16,9 @@ urlpatterns = [
     path('<int:user_id>/', views.ProfileView.as_view(), name="user_profile_view"),
     path('follow/<int:user_id>/', views.FollowView.as_view(), name='follow_view'),
 
+    # 유효한 이메일이 유저에게 전달
+    re_path(r'^account-confirm-email/$', VerifyEmailView.as_view(), name='account_email_verification_sent'),
+    # 유저가 클릭한 이메일(=링크) 확인
+    re_path(r'^account-confirm-email/(?P<key>[-:\w]+)/$', views.ConfirmEmailView.as_view(), name='account_confirm_email'),
 ]
 

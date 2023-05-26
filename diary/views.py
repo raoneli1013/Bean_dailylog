@@ -8,15 +8,17 @@ from rest_framework.permissions import IsAuthenticated
 from .serializers import CommentSerializer
 from rest_framework.viewsets import ViewSet
 
-from .tasks import create_image_task
-from celery.result import AsyncResult
-
 import os
 import requests
 from urllib.parse import urlparse
 from datetime import datetime
 from django.conf import settings
 from rest_framework.pagination import PageNumberPagination
+
+from rest_framework.decorators import api_view
+from .tasks import create_image_task
+from celery.result import AsyncResult
+from rest_framework.permissions import BasePermission # 비밀글 작성자만 보기
 
 class ImageViewSet(ViewSet):
     def create(self, request):
@@ -54,10 +56,8 @@ class ImageViewSet(ViewSet):
             # 작업이 진행 중이면 현재 상태 반환
             return Response({"status": "pending"})
 
-
 class TenPagination(PageNumberPagination):
     page_size = 16
-
 
 class DiaryView(APIView):
     pagination_class = TenPagination
@@ -75,26 +75,48 @@ class DiaryView(APIView):
         serializer = DiaryCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user = request.user)
-            return Response({"message":"diary 작성완료"})
+            return Response({"message":"diary 작성완료"}, status=status.HTTP_201_CREATED)
         else:
             return Response({"message":f"{serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST) #요청오류
 
+class IsOwnerOrPublicRead(BasePermission): # 사용자 정의 권한 클래스
+    def has_object_permission(self, request, view, diary): # 비공개 다이어리 GET요청시 작성자만 접근할 수 있도록 하는 함수
+        
+        if request.method in ['GET']:
+            return not diary.is_private or (request.user.is_authenticated and diary.user == request.user) # 공개 다이어리는 누구나 접근 가능
+        return diary.user == request.user # 사용자가 작성자인지 확인
+    
+# class DiaryDetailView(APIView):
+#     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+#     def get(self,request,id):
+#         diary = get_object_or_404(Diary,id=id)
+#         serialize = DiarySerializer(diary)
+#         return Response(serialize.data)
+    
+
 class DiaryDetailView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    def get(self,request,id):
 
-        # if request.user == diary.user:
-        diary = get_object_or_404(Diary,id=id)
-        serialize = DiarySerializer(diary)
-        return Response(serialize.data)
-        # if request.user == diary.user:
-        #     diary = get_object_or_404(Diary,id=id)
-        #     serialize = DiarySerializer(diary)
-        #     return Response(serialize.data)
-        # else:
-        #     return Response({'message' : "비공개 diary 입니다."})
-    
-    
+    def get_object(self):
+        dir = get_object_or_404(Diary, id=self.kwargs["id"])
+        self.check_object_permissions(self.request, dir)
+        return dir
+
+    def get(self, request, id):
+        diary = get_object_or_404(Diary, id=id)
+        if diary.is_private == True: # 비공개인 경우
+            if diary.user != request.user:
+                self.permission_classes = [IsOwnerOrPublicRead] # 사용자 권한 변경
+                self.dispatch(request)  # 퍼미션 클래스를 다시 적용하기 위해 dispatch 메서드 호출
+                self.check_permissions(request) # request에 대한 권한을 확인
+                return Response({'message': '작성자 본인만 접근할 수 있습니다.'})
+            else:
+                serialize = DiarySerializer(diary)
+                return Response(serialize.data)
+        else:
+            serialize = DiarySerializer(diary)
+            return Response(serialize.data)
+
     def put(self,request,id):
         diary = get_object_or_404(Diary,id=id)
         if request.user == diary.user:
