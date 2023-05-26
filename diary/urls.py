@@ -2,11 +2,8 @@ from django.urls import path,include
 from diary import views
 from rest_framework.routers import DefaultRouter
 
-
 router = DefaultRouter()
 router.register(r'images', views.ImageViewSet, basename='image')
-router.register(r'add',views.Test_add,basename='add')
-
 
 urlpatterns = [
     path('', views.DiaryView.as_view(), name="diary"),

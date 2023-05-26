@@ -7,10 +7,55 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from .serializers import CommentSerializer
 from rest_framework.viewsets import ViewSet
+
+import os
+import requests
+from urllib.parse import urlparse
+from datetime import datetime
+from django.conf import settings
+
 from rest_framework.decorators import api_view
-from .tasks import create_image_task,add
+from .tasks import create_image_task
 from celery.result import AsyncResult
 from rest_framework.permissions import BasePermission # 비밀글 작성자만 보기
+
+class ImageViewSet(ViewSet):
+    def create(self, request):
+        user_input = request.data.get('prompt')
+        diary_id = request.data.get('diary_id')
+
+        # 이미지 생성 작업을 백그라운드로 실행
+        task = create_image_task.delay(user_input)
+
+        # 작업 ID를 반환
+        return Response({"task_id": str(task.id)})
+
+    def retrieve(self, request, pk=None):
+        task = AsyncResult(pk)
+
+        if task.ready():
+            # 작업이 완료되면 이미지 URL 반환
+            img_url = task.result
+
+            # 이미지 다운로드 및 저장 작업 시작
+            response = requests.get(img_url, stream=True)
+            response.raise_for_status()  #만약 다운로드시 문제가 있다면 에러
+
+            subdirs = datetime.now().strftime('%Y/%m/%d')
+            os.makedirs(os.path.join('media', subdirs), exist_ok=True)
+            image_filename = os.path.join('media', subdirs, os.path.basename(urlparse(img_url).path))
+
+            with open(image_filename, 'wb') as out_file:
+                out_file.write(response.content)
+
+            image_url = image_filename.replace(str(settings.MEDIA_ROOT), settings.MEDIA_URL)
+            image_url = image_url.replace('\\', '/')
+
+            return Response({"status": "complete","url": image_url})
+        else:
+            # 작업이 진행 중이면 현재 상태 반환
+            return Response({"status": "pending"})
+
 
 class ImageViewSet(ViewSet):
     def create(self, request):
@@ -67,6 +112,7 @@ class DiaryView(APIView):
 
 class IsOwnerOrPublicRead(BasePermission): # 사용자 정의 권한 클래스
     def has_object_permission(self, request, view, diary): # 비공개 다이어리 GET요청시 작성자만 접근할 수 있도록 하는 함수
+        
         if request.method in ['GET']:
             return not diary.is_private or (request.user.is_authenticated and diary.user == request.user) # 공개 다이어리는 누구나 접근 가능
         return diary.user == request.user # 사용자가 작성자인지 확인
@@ -77,16 +123,31 @@ class IsOwnerOrPublicRead(BasePermission): # 사용자 정의 권한 클래스
 #         diary = get_object_or_404(Diary,id=id)
 #         serialize = DiarySerializer(diary)
 #         return Response(serialize.data)
+    
 
-# 수정중
 class DiaryDetailView(APIView):
-    permission_classes = [IsOwnerOrPublicRead] # 퍼미션클래스를 IsOwnerOrPublicRead로 설정
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_object(self):
+        dir = get_object_or_404(Diary, id=self.kwargs["id"])
+        self.check_object_permissions(self.request, dir)
+        return dir
 
     def get(self, request, id):
         diary = get_object_or_404(Diary, id=id)
-        serialize = DiarySerializer(diary)
-        return Response(serialize.data)
-# 
+        if diary.is_private == True: # 비공개인 경우
+            if diary.user != request.user:
+                self.permission_classes = [IsOwnerOrPublicRead] # 사용자 권한 변경
+                self.dispatch(request)  # 퍼미션 클래스를 다시 적용하기 위해 dispatch 메서드 호출
+                self.check_permissions(request) # request에 대한 권한을 확인
+                return Response({'message': '작성자 본인만 접근할 수 있습니다.'})
+            else:
+                serialize = DiarySerializer(diary)
+                return Response(serialize.data)
+        else:
+            serialize = DiarySerializer(diary)
+            return Response(serialize.data)
+
     def put(self,request,id):
         diary = get_object_or_404(Diary,id=id)
         if request.user == diary.user:
