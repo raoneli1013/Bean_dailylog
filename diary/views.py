@@ -10,49 +10,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import api_view
 from .tasks import create_image_task,add
 from celery.result import AsyncResult
-
-
-class ImageViewSet(ViewSet):
-    def create(self, request):
-        user_input = request.data.get('prompt')
-
-        # 이미지 생성 작업을 백그라운드로 실행
-        task = create_image_task.delay(user_input)
-
-        # 작업 ID를 반환
-        return Response({"task_id": str(task.id)})
-
-    def retrieve(self, request, pk=None):
-        task = AsyncResult(pk)
-
-        if task.ready():
-            # 작업이 완료되면 이미지 URL 반환
-            return Response({"status": "completed", "url": task.result})
-        else:
-            # 작업이 진행 중이면 현재 상태 반환
-            return Response({"status": "pending"})
-
-
-class Test_add(ViewSet):
-    def create(self,request):
-        user_input = request.data.get('num')
-        task = add.delay(*user_input)
-
-        # 작업 ID를 반환합니다.
-        return Response({"task_id": task.id})
-
-    def retrieve(self, request, pk=None):
-        task = AsyncResult(pk)
-
-        if task.ready():
-            return Response({"status": "completed", "result": task.result})
-        else:
-            return Response({"status": "pending"})
-
-
-from rest_framework.decorators import api_view
-from .tasks import create_image_task,add
-from celery.result import AsyncResult
+from rest_framework.permissions import BasePermission # 비밀글 작성자만 보기
 
 class ImageViewSet(ViewSet):
     def create(self, request):
@@ -93,11 +51,6 @@ class Test_add(ViewSet):
 class DiaryView(APIView):
     def get(self,request):
         diaries = Diary.objects.all()
-        # diary = get_object_or_404(Diary,id=id)
-        # if request.user == diary.user:
-        #     diaries = Diary.objects.all()
-        # else:
-            
         serialize = DiarySerializer(diaries, many=True)
         return Response(serialize.data, status=status.HTTP_200_OK)
         
@@ -108,24 +61,32 @@ class DiaryView(APIView):
         serializer = DiaryCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user = request.user)
-            return Response({"message":"diary 작성완료"})
+            return Response({"message":"diary 작성완료"}, status=status.HTTP_201_CREATED)
         else:
             return Response({"message":f"{serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST) #요청오류
 
+class IsOwnerOrPublicRead(BasePermission): # 사용자 정의 권한 클래스
+    def has_object_permission(self, request, view, diary): # 비공개 다이어리 GET요청시 작성자만 접근할 수 있도록 하는 함수
+        if request.method in ['GET']:
+            return not diary.is_private or (request.user.is_authenticated and diary.user == request.user) # 공개 다이어리는 누구나 접근 가능
+        return diary.user == request.user # 사용자가 작성자인지 확인
+    
+# class DiaryDetailView(APIView):
+#     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+#     def get(self,request,id):
+#         diary = get_object_or_404(Diary,id=id)
+#         serialize = DiarySerializer(diary)
+#         return Response(serialize.data)
+
+# 수정중
 class DiaryDetailView(APIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    def get(self,request,id):
-        diary = get_object_or_404(Diary,id=id)
+    permission_classes = [IsOwnerOrPublicRead] # 퍼미션클래스를 IsOwnerOrPublicRead로 설정
+
+    def get(self, request, id):
+        diary = get_object_or_404(Diary, id=id)
         serialize = DiarySerializer(diary)
         return Response(serialize.data)
-        # if request.user == diary.user:
-        #     diary = get_object_or_404(Diary,id=id)
-        #     serialize = DiarySerializer(diary)
-        #     return Response(serialize.data)
-        # else:
-        #     return Response({'message' : "비공개 diary 입니다."})
-    
-    
+# 
     def put(self,request,id):
         diary = get_object_or_404(Diary,id=id)
         if request.user == diary.user:

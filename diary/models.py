@@ -13,6 +13,7 @@ class Diary(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     likes = models.ManyToManyField(User, related_name="liked_diaries", default=[], blank=True, through='Feed_like')
     bookmarks = models.ManyToManyField(User, through='Boookmark', default=[], blank=True, related_name="bookmarked_diaries")
+    is_private = models.BooleanField(default=False)
    
 
 
