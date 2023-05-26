@@ -12,7 +12,8 @@ services:
     volumes:
       - .:/app
       - ./config/nginx:/etc/nginx.conf.d
-      - ./media:/media
+      - ./media:/app/media
+      - ./static:/app/static
     depends_on:
       - django_app
 
@@ -52,7 +53,8 @@ services:
     restart: always
     volumes:
       - .:/app
-      - ./media:/media
+      - ./media:/app/media
+      - ./static:/app/static
 
   celery:
     container_name: celery
@@ -65,3 +67,5 @@ services:
     depends_on:
       - django_app
       - redis
+    links: 
+      - redis:redis
