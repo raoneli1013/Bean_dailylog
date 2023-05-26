@@ -32,7 +32,7 @@ class User(AbstractBaseUser):
 
     email = models.EmailField("email address", max_length=50, unique=True, null=False, blank=False)
     password = models.CharField("비밀번호", max_length=50)
-    nickname = models.CharField("이름", max_length=100)
+    nickname = models.CharField("이름", max_length=100,null=True, blank=True)
     introduction = models.TextField("자기소개", null=True, blank=True)
     profile_img = models.ImageField("프로필 이미지", blank=True, upload_to="profile/%Y/%m/")
     followings = models.ManyToManyField("self", symmetrical=False, related_name="followers", blank=True)
@@ -62,3 +62,5 @@ class User(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return True
+    
+

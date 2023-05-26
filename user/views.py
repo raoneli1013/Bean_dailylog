@@ -8,6 +8,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from user.serializers import *
 from django.http import HttpResponseRedirect
 from urllib.parse import urlencode
+from allauth.account.models import EmailConfirmation, EmailConfirmationHMAC
+from rest_framework.permissions import AllowAny
+
 # user/signup/
 class UserView(APIView):
 
@@ -175,3 +178,30 @@ class FollowView(APIView):
         else:
             return Response ("로그인이 필요합니다",status=status.HTTP_400_BAD_REQUEST)
 
+
+class ConfirmEmailView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, *args, **kwargs):
+        self.object = confirmation = self.get_object()
+        confirmation.confirm(self.request)
+        # A React Router Route will handle the failure scenario
+        return HttpResponseRedirect('/') # 인증성공
+
+    def get_object(self, queryset=None):
+        key = self.kwargs['key']
+        email_confirmation = EmailConfirmationHMAC.from_key(key)
+        if not email_confirmation:
+            if queryset is None:
+                queryset = self.get_queryset()
+            try:
+                email_confirmation = queryset.get(key=key.lower())
+            except EmailConfirmation.DoesNotExist:
+                # A React Router Route will handle the failure scenario
+                return HttpResponseRedirect('/') # 인증실패
+        return email_confirmation
+
+    def get_queryset(self):
+        qs = EmailConfirmation.objects.all_valid()
+        qs = qs.select_related("email_address__user")
+        return qs
