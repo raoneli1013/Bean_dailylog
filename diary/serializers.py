@@ -17,7 +17,9 @@ class DiarySerializer(serializers.ModelSerializer):
     #북마크 갯수
     def get_bookmarks_count(self, obj):
         return obj.bookmarks.count()
+    
 
+    
     class Meta:
         model = Diary
         fields = '__all__'
