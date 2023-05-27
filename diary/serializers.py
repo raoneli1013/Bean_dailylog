@@ -3,11 +3,11 @@ from .models import Diary, Comment
 
 
 class DiarySerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField
+    user_nickname = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
     bookmarks_count = serializers.SerializerMethodField()
 
-    def get_user(self, dir):
+    def get_user_nickname(self, dir):
         return dir.user.nickname
     
     #좋아요 갯수

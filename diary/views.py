@@ -13,6 +13,7 @@ import requests
 from urllib.parse import urlparse
 from datetime import datetime
 from django.conf import settings
+from rest_framework.pagination import PageNumberPagination
 
 from rest_framework.decorators import api_view
 from .tasks import create_image_task
@@ -55,51 +56,19 @@ class ImageViewSet(ViewSet):
             # 작업이 진행 중이면 현재 상태 반환
             return Response({"status": "pending"})
 
-
-class ImageViewSet(ViewSet):
-    def create(self, request):
-        user_input = request.data.get('prompt')
-
-        # 이미지 생성 작업을 백그라운드로 실행
-        task = create_image_task.delay(user_input)
-
-        # 작업 ID를 반환
-        return Response({"task_id": str(task.id)})
-
-    def retrieve(self, request, pk=None):
-        task = AsyncResult(pk)
-
-        if task.ready():
-            # 작업이 완료되면 이미지 URL 반환
-            return Response({"status": "completed", "url": task.result})
-        else:
-            # 작업이 진행 중이면 현재 상태 반환
-            return Response({"status": "pending"})
-
-
-class Test_add(ViewSet):
-    def create(self,request):
-        user_input = request.data.get('num')
-        task = add.delay(*user_input)
-
-        # 작업 ID를 반환합니다.
-        return Response({"task_id": task.id})
-
-    def retrieve(self, request, pk=None):
-        task = AsyncResult(pk)
-
-        if task.ready():
-            return Response({"status": "completed", "result": task.result})
-        else:
-            return Response({"status": "pending"})
+class TenPagination(PageNumberPagination):
+    page_size = 16
 
 class DiaryView(APIView):
-    def get(self,request):
-        diaries = Diary.objects.all()
-        serialize = DiarySerializer(diaries, many=True)
-        return Response(serialize.data, status=status.HTTP_200_OK)
-        
+    pagination_class = TenPagination
     
+    def get(self,request):
+        diaries = Diary.objects.all().order_by('-created_at')
+        paginator = TenPagination()
+        result_page = paginator.paginate_queryset(diaries, request)
+        serializer = DiarySerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+        
     def post(self,request):
         if not request.user.is_authenticated:
             return Response("로그인을 해주세요.", status=status.HTTP_401_UNAUTHORIZED) 
