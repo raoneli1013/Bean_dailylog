@@ -146,7 +146,7 @@ CELERY_RESULT_BACKEND = 'redis://redis:6379'  # django-celery-results를 사용�
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://localhost:6379",
+        "LOCATION": "redis://redis:6379",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -185,11 +185,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_CREDENTIALS = True
 
-# 배포할때 고치기
 CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:8000",
-    "http://127.0.0.1:5500",
-] 
+    'https://lucedude.link',
+    'http://127.0.0.1:5500',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://lucedude.link',
+]
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=600),
